@@ -47,7 +47,7 @@ export default function Deudores() {
       .map((s) => {
         const ps = pagosPorSocio.get(s.id) ?? []
         const estado = estadoDeSocio(ps).estado
-        return { socio: s, estado, deuda: deudaEstimada(ps) }
+        return { socio: s, estado, deuda: deudaEstimada(ps, s.precioMensual) }
       })
       .filter((d) => d.estado === 'vencido' || d.estado === 'sin_pagos')
       .sort((a, b) => (b.deuda?.monto ?? 0) - (a.deuda?.monto ?? 0))

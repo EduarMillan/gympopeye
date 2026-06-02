@@ -9,6 +9,7 @@ export const TABLAS = [
   'promociones',
   'turnos',
   'usuarios',
+  'configuracion',
 ] as const
 
 export type Tabla = (typeof TABLAS)[number]

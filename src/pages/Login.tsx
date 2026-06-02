@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { RefreshCw, ArrowLeft } from 'lucide-react'
 import { db } from '../db/db'
@@ -33,9 +33,31 @@ export default function Login() {
   const [preguntaCargada, setPreguntaCargada] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [chequeoHecho, setChequeoHecho] = useState(false)
+  const [comprobando, setComprobando] = useState(false)
 
-  if (cantidad === undefined) return null // cargando
-  const primeraVez = cantidad === 0
+  // Si no hay usuarios locales, comprobar en la nube ANTES de ofrecer
+  // "crear superadmin": así nadie puede auto-registrarse si el sistema ya
+  // está configurado (solo verán iniciar sesión).
+  useEffect(() => {
+    if (cantidad === undefined || cantidad > 0 || chequeoHecho) return
+    if (supabaseConfigurado && navigator.onLine) {
+      setComprobando(true)
+      sincronizar()
+        .catch(() => {})
+        .finally(() => {
+          setComprobando(false)
+          setChequeoHecho(true)
+        })
+    } else {
+      setChequeoHecho(true)
+    }
+  }, [cantidad, chequeoHecho])
+
+  if (cantidad === undefined) return null // cargando base local
+
+  const verificando = comprobando || (cantidad === 0 && !chequeoHecho)
+  const primeraVez = cantidad === 0 && chequeoHecho && !comprobando
 
   async function entrar() {
     setError('')
@@ -111,6 +133,21 @@ export default function Login() {
     setRespuesta('')
     setPreguntaCargada(null)
     setVista('recuperar')
+  }
+
+  if (verificando) {
+    return (
+      <div className="mx-auto flex min-h-svh max-w-sm flex-col items-center justify-center gap-4 px-6">
+        <img
+          src="/pwa-192x192.png"
+          alt="Popeye's Gym"
+          className="h-20 w-20 rounded-full ring-1 ring-white/15"
+        />
+        <p className="flex items-center gap-2 text-on-surface-variant">
+          <RefreshCw size={18} className="animate-spin" /> Comprobando…
+        </p>
+      </div>
+    )
   }
 
   return (

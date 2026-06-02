@@ -137,6 +137,12 @@ export default function SocioDetalle() {
             {etiquetaTurno(turno)}
           </p>
         )}
+        {socio.precioMensual != null && (
+          <p className="flex items-center gap-2">
+            <CalendarDays size={16} className="text-primary" /> Mensualidad{' '}
+            {formatMoneda(socio.precioMensual)}
+          </p>
+        )}
         <p className="flex items-center gap-2">
           <CalendarDays size={16} className="text-primary" /> Inscrito el{' '}
           {formatFecha(socio.fechaInscripcion)}

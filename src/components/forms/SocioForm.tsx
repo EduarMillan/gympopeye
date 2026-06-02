@@ -21,6 +21,9 @@ export default function SocioForm({ socio, onDone }: Props) {
     socio?.fechaInscripcion ?? hoyISO(),
   )
   const [turnoId, setTurnoId] = useState(socio?.turnoId ?? '')
+  const [precioMensual, setPrecio] = useState(
+    socio?.precioMensual != null ? String(socio.precioMensual) : '',
+  )
   const [activo, setActivo] = useState(socio?.activo ?? true)
   const [notas, setNotas] = useState(socio?.notas ?? '')
   const [foto, setFoto] = useState<string | undefined>(socio?.foto)
@@ -61,6 +64,7 @@ export default function SocioForm({ socio, onDone }: Props) {
       telefono: telefono.trim() || undefined,
       fechaInscripcion,
       turnoId: turnoId || undefined,
+      precioMensual: precioMensual ? Number(precioMensual) : undefined,
       activo,
       notas: notas.trim() || undefined,
       foto,
@@ -120,6 +124,15 @@ export default function SocioForm({ socio, onDone }: Props) {
           )
         })}
       </SelectField>
+
+      <TextField
+        label="Precio mensual"
+        type="number"
+        inputMode="decimal"
+        value={precioMensual}
+        onChange={(e) => setPrecio(e.target.value)}
+        placeholder="Mensualidad de este socio"
+      />
 
       <TextField
         label="Fecha de inscripción"

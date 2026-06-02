@@ -19,6 +19,7 @@ export interface Socio {
   foto?: string // dataURL base64, opcional
   fechaInscripcion: string // ISO yyyy-mm-dd
   turnoId?: string // turno (horario) al que está inscrito
+  precioMensual?: number // mensualidad de este socio (para prorrateo y deudas)
   activo: boolean
   notas?: string
   createdAt: number
@@ -108,6 +109,12 @@ export interface Promocion {
   eliminado?: boolean // borrado suave (para que el borrado se sincronice)
 }
 
+export interface Configuracion {
+  id: string // siempre 'app'
+  diaCobro: number // día fijo de cobro del mes (1-31)
+  updatedAt: number
+}
+
 export type Rol = 'superadmin' | 'admin'
 
 export interface Usuario {
@@ -148,6 +155,7 @@ const db = new Dexie('popeyegym') as Dexie & {
   promociones: EntityTable<Promocion, 'id'>
   turnos: EntityTable<Turno, 'id'>
   usuarios: EntityTable<Usuario, 'id'>
+  configuracion: EntityTable<Configuracion, 'id'>
 }
 
 db.version(1).stores({
@@ -176,6 +184,11 @@ db.version(3).stores({
 // v4: usuarios para el login (superadmin / admins).
 db.version(4).stores({
   usuarios: 'id, usuario, updatedAt',
+})
+
+// v5: configuración global (día de cobro).
+db.version(5).stores({
+  configuracion: 'id',
 })
 
 // Helpers comunes

@@ -80,14 +80,16 @@ export function estadoDeSocio(pagos: Pago[]): InfoEstado {
  */
 export function deudaEstimada(
   pagos: Pago[],
+  precioMensual?: number,
 ): { monto: number; meses: number } | null {
   const info = estadoDeSocio(pagos)
   if (info.estado !== 'vencido' || info.diasRestantes === undefined) return null
 
-  // Último pago según el período cubierto más lejano (define la mensualidad).
+  // Mensualidad: el precio del socio si está definido; si no, el último pago.
   const ultimo = pagos.reduce((a, b) => (b.periodoHasta > a.periodoHasta ? b : a))
+  const mensualidad = precioMensual && precioMensual > 0 ? precioMensual : ultimo.monto
   const meses = Math.max(1, Math.ceil(-info.diasRestantes / 30))
-  return { monto: ultimo.monto * meses, meses }
+  return { monto: mensualidad * meses, meses }
 }
 
 /** Período de un mes a partir de una fecha de inicio (+ meses bonus). */

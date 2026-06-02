@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../db/db'
+import { guardarDiaCobro, diaCobroDe } from '../db/config'
 import {
   Settings,
   RefreshCw,
@@ -12,6 +15,7 @@ import {
   LogOut,
   UserCog,
   ShieldCheck,
+  CalendarClock,
 } from 'lucide-react'
 import { supabaseConfigurado } from '../lib/supabase'
 import { sincronizar, getUltimaSync } from '../db/sync'
@@ -35,6 +39,22 @@ export default function Ajustes() {
   const [ultimaSync, setUltimaSync] = useState(getUltimaSync())
   const [aviso, setAviso] = useState<Aviso>(null)
   const inputArchivo = useRef<HTMLInputElement>(null)
+
+  const config = useLiveQuery(() => db.configuracion.get('app'), [])
+  const [diaCobroStr, setDiaCobroStr] = useState('')
+  useEffect(() => {
+    setDiaCobroStr(String(diaCobroDe(config)))
+  }, [config])
+
+  async function onGuardarCobro() {
+    const d = Number(diaCobroStr)
+    if (!(d >= 1 && d <= 31)) {
+      setAviso({ tipo: 'error', texto: 'El día de cobro debe ser entre 1 y 31.' })
+      return
+    }
+    await guardarDiaCobro(d)
+    setAviso({ tipo: 'ok', texto: 'Día de cobro guardado.' })
+  }
 
   useEffect(() => {
     const on = () => setOnline(true)
@@ -144,6 +164,32 @@ export default function Ajustes() {
           {aviso.texto}
         </div>
       )}
+
+      {/* Configuración de cobro */}
+      <div className="card-metal mb-5 p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <CalendarClock size={22} className="text-primary" />
+          <h3 className="font-headline text-title-lg uppercase">Cobro</h3>
+        </div>
+        <label className="flex flex-col gap-1.5 text-label-lg font-semibold uppercase tracking-wide text-on-surface-variant">
+          Día de cobro del mes
+          <input
+            type="number"
+            min={1}
+            max={31}
+            value={diaCobroStr}
+            onChange={(e) => setDiaCobroStr(e.target.value)}
+            className="w-full rounded border-2 border-surface-variant bg-surface-container-low px-3 py-2.5 text-on-surface outline-none focus:border-primary-container"
+          />
+        </label>
+        <p className="mt-2 text-body-md text-on-surface-variant">
+          El primer pago se prorratea hasta este día; luego se cobra la
+          mensualidad completa. El precio se define en la ficha de cada socio.
+        </p>
+        <Button onClick={onGuardarCobro} className="mt-3 w-full">
+          Guardar día de cobro
+        </Button>
+      </div>
 
       {/* Sincronización con la nube */}
       <div className="card-metal mb-5 p-4">
