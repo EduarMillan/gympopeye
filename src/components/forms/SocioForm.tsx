@@ -5,6 +5,7 @@ import { db, type Socio } from '../../db/db'
 import { crearSocio, actualizarSocio } from '../../db/socios'
 import { etiquetaTurno } from '../../db/turnos'
 import { hoyISO } from '../../lib/format'
+import { comprimirImagen } from '../../lib/imagen'
 import { TextField, TextArea } from '../ui/TextField'
 import { SelectField } from '../ui/SelectField'
 import Button from '../ui/Button'
@@ -48,12 +49,14 @@ export default function SocioForm({ socio, onDone }: Props) {
     return m
   }, [socios, socio])
 
-  function onFoto(e: ChangeEvent<HTMLInputElement>) {
+  async function onFoto(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setFoto(reader.result as string)
-    reader.readAsDataURL(file)
+    try {
+      setFoto(await comprimirImagen(file))
+    } catch {
+      // Si algo falla, no bloquea el alta del socio (queda sin foto).
+    }
   }
 
   async function guardar() {
